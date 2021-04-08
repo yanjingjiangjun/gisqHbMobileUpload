@@ -1,0 +1,141 @@
+@font-face {font-family: "iconfont";
+  
+  src:url('iconfont.ttf') format('truetype'); /* chrome, firefox, opera, Safari, Android, iOS 4.2+ */
+}
+
+[class^="iconfont-gisqupload"], [class*=" iconfont-gisqupload"]{
+  font-family: "iconfont" !important;
+  font-size: 16px;
+  font-style: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-plus-line:before {
+  content: "\e636";
+}
+
+.icon-friends:before {
+  content: "\e61e";
+}
+
+.icon-fold:before {
+  content: "\e613";
+}
+
+.icon-like:before {
+  content: "\e614";
+}
+
+.icon-link:before {
+  content: "\e615";
+}
+
+.icon-location:before {
+  content: "\e616";
+}
+
+.icon-mail:before {
+  content: "\e617";
+}
+
+.icon-more:before {
+  content: "\e618";
+}
+
+.icon-notificationforbid:before {
+  content: "\e619";
+}
+
+.icon-notification:before {
+  content: "\e61a";
+}
+
+.icon-search:before {
+  content: "\e61b";
+}
+
+.icon-unfold:before {
+  content: "\e61c";
+}
+
+.icon-unlock:before {
+  content: "\e61d";
+}
+
+.icon-message:before {
+  content: "\e612";
+}
+
+.icon-my:before {
+  content: "\e60a";
+}
+
+.icon-ringpause:before {
+  content: "\e60b";
+}
+
+.icon-ring:before {
+  content: "\e60c";
+}
+
+.icon-share:before {
+  content: "\e60d";
+}
+
+.icon-upload:before {
+  content: "\e60e";
+}
+
+.icon-video:before {
+  content: "\e60f";
+}
+
+.icon-edit:before {
+  content: "\e610";
+}
+
+.icon-form:before {
+  content: "\e611";
+}
+
+.icon-camera:before {
+  content: "\e600";
+}
+
+.icon-card:before {
+  content: "\e601";
+}
+
+.icon-cart:before {
+  content: "\e602";
+}
+
+.icon-down:before {
+  content: "\e603";
+}
+
+.icon-edit1:before {
+  content: "\e604";
+}
+
+.icon-file:before {
+  content: "\e605";
+}
+
+.icon-file2:before {
+  content: "\e606";
+}
+
+.icon-goods:before {
+  content: "\e607";
+}
+
+.icon-history:before {
+  content: "\e608";
+}
+
+.icon-home:before {
+  content: "\e609";
+}
+
