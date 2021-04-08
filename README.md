@@ -35,4 +35,5 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
 ### publish
 ```
 npm publish --registry http://registry.npmjs.org
+
 ````
