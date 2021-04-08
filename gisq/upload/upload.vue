@@ -109,7 +109,6 @@
 			takePhoto: function() {
 				var _self = this;
 				if (_self.isHbuilder) {
-					var gisqCamera = plus.android.importClass('com.zjzs.gisq.qcjg.lib.GisqCamera');
 					var main = plus.android.runtimeMainActivity();
 					var Intent = plus.android.importClass("android.content.Intent");
 					var cameraActivity = plus.android.importClass(
@@ -248,22 +247,29 @@
 
 				if (image.width > 0 && image.height > 0) {
 					//原图片宽高比例 大于 指定的宽高比例，这就说明了原图片的宽度必然 > 高度
+					console.log(1)
 					if (image.width / image.height >= maxWidth / maxHeight) {
+						console.log(2)
 						if (image.width > maxWidth) {
+							console.log(3)
 							tempWidth = maxWidth;
 							// 按原图片的比例进行缩放
 							tempHeight = (image.height * maxWidth) / image.width;
 						} else {
+							console.log(4)
 							// 按原图片的大小进行缩放
 							tempWidth = image.width;
 							tempHeight = image.height;
 						}
 					} else { // 原图片的高度必然 > 宽度
+						console.log(5)
 						if (image.height > maxHeight) {
+							console.log(6)
 							tempHeight = maxHeight;
 							// 按原图片的比例进行缩放
 							tempWidth = (image.width * maxHeight) / image.height;
 						} else {
+							console.log(7)
 							// 按原图片的大小进行缩放
 							tempWidth = image.width;
 							tempHeight = image.height;
