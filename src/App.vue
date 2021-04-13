@@ -8,7 +8,7 @@
 
 			</div>
 		</popup> -->
-		<gisq-upload @onChange="onChange" ></gisq-upload>
+		<gisq-upload @onChange="onChange" @onAdded="onAdded" @onBeforeAdded="onBeforeAdded" @onBeforeDeleted="onBeforeDeleted" @onDeleted="onDeleted" v-bind:files.sync="showFiles" ></gisq-upload>
 	</div>
 
 </template>
@@ -22,13 +22,34 @@
 		},
 		data() {
 			return {
-				
+				//showFiles:[],
+				 showFiles:["https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fwww.virtualtelescope.eu%2Fwordpress%2Fwp-content%2Fuploads%2F2018%2F11%2F2018-11-11-Moon-Saturn_Barnaba.jpg&refer=http%3A%2F%2Fwww.virtualtelescope.eu&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1619860628&t=52e2ee9f5825302530acdc86003deff3"
+				,
+				"https://wts.itqiche.com/u5/car_u5_video/XuHang.mp4",
+				] 
 			}
 		},
 		methods: {
 			onChange:function(fileMap){
+				console.log("onChange")
 				console.log(fileMap)
-			}
+			},
+			onAdded:function(path){
+				console.log("onAdded="+path)
+				//console.log(fileObj)
+			},
+			onDeleted:function(path){
+				console.log("onDeleted")
+				console.log(path)
+			},
+			onBeforeAdded:function(path){
+				console.log("onBeforeAdded")
+				console.log(path)
+			},
+			onBeforeDeleted:function(path){
+				console.log("onBeforeDeleted")
+				console.log(path)
+			},
 		}
 	}
 </script>

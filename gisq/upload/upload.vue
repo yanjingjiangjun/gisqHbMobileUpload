@@ -1,15 +1,18 @@
 <template>
 	<div class="uploadRoot" style="">
 		<div style="" class="zoomimages" v-viewer="zoomOptions">
-			<div v-for="(item,key) in fileMap" style="" class="gisq-image-showsmall-div">
-				<img :src="item[1]" :key="item[0]" class="gisq-small-image"
-					@click="handleOpen(item[1],$event.target)" @load="DrawBetterImage($event.target,100,100)"></img>
+			<div v-for="(item,key) in fileMap" style="" class="gisq-image-showsmall-div" @click="handleOpen(item[1],$event)">
+				<img :src="item[1].type=='picture'?item[1].src:item[1].poster" :key="item[0]" 
+				class="gisq-small-image" ></img>
 				<div style="" class="gisqUpload gisqUpload-delete-root-div" @click="deleteSelectedFile(item[0])"
 					:cKey="item[0]">
 					<span class="iconfont-gisqupload icon-shanchu gisqUpload-icon-delete-span" style="">
 
 					</span>
 
+				</div>
+				<div style="" class="gisq-upload-video-icon" v-show="item[1].type==='video'">
+					<i class="iconfont-gisqupload icon-circle-video" style="font-size: 2rem;color: #FFFFFF;"></i>
 				</div>
 			</div>
 			<div style="" @click="showSheet" class="gisqupload-div-action-plus">
@@ -25,6 +28,16 @@
 		<!-- <viewer class="viewer " style="width: 80px;" alt="">
 		  <img :src="bigSrc">
 		</viewer> -->
+		<div class='popContainer' v-show="showMaskDialog">
+			<video style="" class="gisqlib-upload-video" controls="controls" ref="gisqLibUploadVideoPlayer"
+				@ended="onPlayerEnded($event)">
+				<source :src="gisqVideoUrl" type="video/mp4">
+			</video>
+			<div class="gisqlib-upload-videomask-close-div" @click="closePlayVideoMask()">
+				<i class="iconfont-gisqupload icon-close gisqlib-upload-videomask-closeIcon"></i>
+			</div>
+
+		</div>
 	</div>
 </template>
 
@@ -45,8 +58,42 @@
 			gisqSheet,
 			//duoImageViewer
 		},
+		props:{
+			files:Array,
+			onBeforeDeleted:Function,
+			onBeforeAdded:Function,
+			onDeleted:Function,
+			onAdded:Function,
+		},
+		watch:{
+			files:{
+				deep:true,
+				immediate:true,
+				handler(newVal,oldVal){
+					if(!this.files) return;
+					for(var i=0;i<this.files.length;i++){
+						var fileType=this.getFileType(this.files[i]);
+						var path=this.files[i];
+						if(fileType=="video"){
+							var _self=this;
+							this.getVideoBase64(path).then(function(dataUrl){
+								_self.updateFileMap(path,path,fileType,dataUrl,"show");
+							})
+						}else{
+							this.updateFileMap(path,path,fileType,"","show");
+						}
+						
+					}
+					
+				}
+			}
+		},
 		data() {
 			return {
+				gisqVideoUrl: "",
+				showMaskDialog: false,
+				videoHeight:240,
+				videoWidth:400,
 				isHbuilder: false,
 				currentValue: false,
 				iTitle: "类型选择",
@@ -61,6 +108,7 @@
 					},
 
 				],
+				addedFileMap:new Map(),
 				fileMap: new Map(),
 				index: 0,
 				showViewer: false,
@@ -69,8 +117,8 @@
 				zoomOptions: {
 					inline: false,
 					button: true,
-					navbar: true,
-					title: true,
+					navbar: false, //去除左右滑动切换
+					title: false,
 					toolbar: {
 						zoomIn: 0,
 						zoomOut: 0,
@@ -84,18 +132,36 @@
 						flipHorizontal: 0,
 						flipVertical: 0
 					},
-					tooltip: true,
+					tooltip: false,
 					movable: true,
 					zoomable: true,
 					rotatable: true,
 					scalable: true,
-					transition: true,
+					transition: false,
 					fullscreen: true,
 					keyboard: true,
 				}
 			}
 		},
 		methods: {
+			getFileType:function(path){
+				var fileType = "picture";
+				if(!!path){
+					
+					var types = path.split(".")
+					
+					if (types.length >= 2) {
+						var type = types[types.length - 1].toLowerCase();
+						if (type === "mp4" || type === "mov" || type === "avi" || type === "wmv" || type === "3gp" ||
+							type === "mkv" || type === "rmvb" || type === "webm" || type === "flv" || type === "qsv") {
+							fileType = "video";
+						}
+						
+					}
+				}
+				return fileType;
+				
+			},
 			showSheet: function() {
 				this.iShow = true;
 			},
@@ -112,7 +178,7 @@
 					var main = plus.android.runtimeMainActivity();
 					var Intent = plus.android.importClass("android.content.Intent");
 					var cameraActivity = plus.android.importClass(
-					"com.zjzs.gisq.jetpack.aar_camara.CamaraActivity"); //自己写的二维码扫描页面
+						"com.zjzs.gisq.jetpack.aar_camara.CamaraActivity"); //自己写的二维码扫描页面
 					var intent = new Intent(main, cameraActivity.class);
 					//intent.setClassName(main, cameraActivity.class);
 
@@ -135,14 +201,15 @@
 			},
 			choosePhoto: function() {
 				var _self = this;
-				/* _self.fileMap.set(_self.index,
-					"https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fwww.virtualtelescope.eu%2Fwordpress%2Fwp-content%2Fuploads%2F2018%2F11%2F2018-11-11-Moon-Saturn_Barnaba.jpg&refer=http%3A%2F%2Fwww.virtualtelescope.eu&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1619860628&t=52e2ee9f5825302530acdc86003deff3"
-					)
+				
+				/*var pSrc="https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fwww.virtualtelescope.eu%2Fwordpress%2Fwp-content%2Fuploads%2F2018%2F11%2F2018-11-11-Moon-Saturn_Barnaba.jpg&refer=http%3A%2F%2Fwww.virtualtelescope.eu&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1619860628&t=52e2ee9f5825302530acdc86003deff3"
+				_self.updateFileMap(_self.index+"",pSrc,"picture","","add");
+				var vSrc="https://wts.itqiche.com/u5/car_u5_video/XuHang.mp4";
+				this.getVideoBase64(vSrc).then(function(dataUrl){
+					_self.updateFileMap((_self.index+1)+"",vSrc,"video",dataUrl,"add");
+				})
 				_self.index++; */
-				/* setTimeout(function(){
-					
-					
-				},1000) */
+
 
 				if (_self.isHbuilder) {
 					// 从相册中选择图片
@@ -155,7 +222,7 @@
 					}, function(e) {
 						console.log("取消选择图片");
 					}, {
-						filter: "image",
+						filter: "none",
 						multiple: true,
 						maximum: 4,
 						system: false,
@@ -182,25 +249,79 @@
 			parseFile: function(path) {
 				var _self = this;
 				if (_self.isHbuilder) {
-					plus.io.resolveLocalFileSystemURL(path, function(entry) {
-						// 可通过entry对象操作test.html文件 
-						var fileReader = new plus.io.FileReader();
-
-						fileReader.onloadend = function(evt) {
-							var url = evt.target.result;
-							var fileJs = _self.dataURLtoFile(url, entry.name); //转换为js 的file对象 
-							var jsBlob = URL.createObjectURL(fileJs);
-							//_self.fileMap2.push({"key":""+path+"","value":""+jsBlob+""})
-							_self.fileMap.set(path, jsBlob);
-							//
-							//_self.fileMap2.put(path,jsBlob);
-							_self.$forceUpdate()
+					if(!!path){
+						var types = path.split(".")
+						var fileType = "picture";
+						fileType=_self.getFileType(path);
+						if (path.indexOf("http") >= 0) {
+							
+							if(fileType === "video"){
+								this.getVideoBase64(path).then(function(dataURL){
+									console.log(111)
+									_self.updateFileMap(path,path,fileType,dataUrl);
+								})
+							}else{
+								_self.updateFileMap(path,jsBlob,fileType);
+							}
+							return;
+						}else{
+							_self.readLocalFile(path,fileType);
 						}
-						fileReader.readAsDataURL(entry);
-					}, function(e) {
-						alert("Resolve file URL failed: " + e.message);
-					});
+							
+					}
+					
 				}
+			},
+			readFile: function(path,fileType, entry) {
+				var _self = this;
+				if (_self.isHbuilder && (!!path)) {
+					var fileReader = new plus.io.FileReader();
+					fileReader.onloadend = function(evt) {
+						var url = evt.target.result;
+						var fileJs = _self.dataURLtoFile(url, entry.name); //转换为js 的file对象 
+						var jsBlob = URL.createObjectURL(fileJs);
+						if(fileType==="video"){
+							_self.getVideoBase64(jsBlob).then(function(dataUrl){
+								_self.updateFileMap(path,jsBlob,fileType,dataUrl,"add");
+							});
+						}else{
+							_self.updateFileMap(path,jsBlob,fileType,"add");
+						}
+					}
+					fileReader.readAsDataURL(entry);
+				}
+
+			},
+			readLocalFile:function(path,fileType){
+				var _self=this;
+				plus.io.resolveLocalFileSystemURL(path, function(entry) {
+					// 可通过entry对象操作test.html文件 
+					_self.readFile(path, fileType,entry);
+				}, function(e) {
+					alert("Resolve file URL failed: " + e.message);
+				});
+			},
+			updateFileMap:function(path,jsBlob,fileType,posterDataUrl,actionType){
+				this.beforeAdded(path);
+				var isServer=false;
+				if(path.indexOf("http")==0){
+					isServer=true;
+				} 
+				var fileObj={
+					src: jsBlob,
+					poster: posterDataUrl,
+					type: fileType,
+					actionType:actionType,
+					isServer:isServer,
+				}
+				this.fileMap.set(path,fileObj );
+				console.log("actionType="+actionType)
+				if(actionType==="add"){
+					this.addedFileMap.set(path,fileObj)
+					this.addedFile(path,fileObj);
+					this.onChange();
+				}
+				this.$forceUpdate()
 			},
 			plusReady: function(callback) {
 				if (window.plus) {
@@ -210,18 +331,47 @@
 				}
 			},
 			deleteSelectedFile: function(key) {
+				var fileObj=this.fileMap.get(key)
+				this.beforeDeleted(key);
 				this.fileMap.delete(key)
 				this.$forceUpdate();
+				this.deletedFile(key);
+				this.addedFileMap.delete(key);
 				this.onChange();
+				event.stopPropagation();
+			},
+			beforeAdded:function(key){
+				this.$emit("onBeforeAdded", key);
+			},
+			beforeDeleted:function(key){
+				this.$emit("onBeforeDeleted", key);
+			},
+			deletedFile:function(key){
+				this.$emit("onDeleted", key);
+			},
+			addedFile:function(key,fileObj){
+				this.$emit("onAdded", key);
 			},
 			onChange: function() {
 				this.$emit("onChange", this.fileMap);
 			},
-			handleOpen: function(src, domElement) {
-				this.bigSrc = src
-				this.showViewer = !this.showViewer
-				const viewer = this.$el.querySelector('.zoomimages').$viewer
-				viewer.show()
+			handleOpen: function(item, event) {
+				var src = item.src;
+				var type = item.type;
+				if (type === "video") {
+					this.showMaskDialog = true;
+					this.gisqVideoUrl = src;
+					console.log(src)
+					this.playVideo(this.$refs.gisqLibUploadVideoPlayer, src);
+					event.stopPropagation();
+					return;
+				} else {
+					this.bigSrc = src
+					this.showViewer = !this.showViewer
+					const viewer = this.$el.querySelector('.zoomimages').$viewer
+					viewer.show()
+				}
+
 			},
 			handleClose: function() {
 				this.showViewer = false
@@ -282,6 +432,131 @@
 					ImgObj.alt = image.width + "×" + image.height;
 
 				}
+			},
+			dbPlayVideo(url) {
+				//进入全屏
+				var obj = this.$refs.gisqLibUploadVideoPlayer;
+				if (obj.requestFullscreen) {
+					obj.requestFullscreen();
+				} else if (obj.mozRequestFullScreen) {
+					obj.mozRequestFullScreen();
+				} else if (obj.webkitRequestFullScreen) {
+					obj.webkitRequestFullScreen();
+				}
+				obj.play(url);
+				obj.parentNode.childNodes[0].style.display = "none";
+			},
+			//退出全屏
+			exitFullscreen(id) {
+				var obj = this.$refs.gisqLibUploadVideoPlayer;
+				if (document.exitFullscreen && obj.style.objectFit == "") {
+					document.exitFullscreen();
+				} else if (document.msExitFullscreen) {
+					document.msExitFullscreen();
+				} else if (document.mozCancelFullScreen) {
+					document.mozCancelFullScreen();
+				} else if (document.webkitExitFullscreen) {
+					document.webkitExitFullscreen();
+				}
+				obj.parentNode.childNodes[0].style.display = "block";
+				setTimeout(function() {
+					obj.style.objectFit = "fill";
+				}, 500);
+			},
+			playVideo(obj, url) {
+				obj.style.objectFit = "";
+				var _this = this;
+				obj.src = url;
+				//视频横屏
+				var phoneWidth = document.documentElement.clientWidth;
+				var phoneHeight = document.documentElement.clientHeight;
+				var scal=0.92;
+				if(phoneHeight<phoneWidth){//横屏
+					if(this.videoHeight>this.videoWidth){//高大于宽
+						var r=this.videoWidth/this.videoHeight
+						obj.style.height=phoneHeight*scal+"px";
+						obj.style.width=phoneHeight*scal*r+"px";
+					}else{
+						var r=this.videoHeight/this.videoWidth
+						obj.style.width=phoneWidth*scal+"px";
+						obj.style.height=phoneWidth*scal*r+"px";
+					}
+				}else{
+					if(this.videoHeight<this.videoWidth){//高大于宽
+						var r=this.videoHeight/this.videoWidth
+						obj.style.width=phoneWidth*scal+"px";
+						obj.style.height=phoneWidth*scal*r+"px";
+					}else{
+						var r=this.videoWidth/this.videoHeight
+						obj.style.height=phoneHeight*scal+"px";
+						obj.style.width=phoneHeight*scal*r+"px";
+					}
+				}
+				
+				//this.dbPlayVideo(url);
+				obj.play(url);
+
+			},
+			reSetVideo(eventType) {
+				var obj = this.$refs.gisqLibUploadVideoPlayer;
+
+				var isFull = document.fullscreenElement || document.msFullscreenElement || document.mozFullScreenElement ||
+					document.webkitFullscreenElement || false;
+				var url = this.gisqVideoUrl;
+				if (obj && !isFull) {
+					obj.pause();
+					obj.src = url;
+					obj.load();
+
+					obj.currentTime = 0;
+					obj.style.objectFit = "fill";
+					obj.parentNode.childNodes[0].style.display = "block";
+					obj.addEventListener(eventType, null);
+					obj = null;
+				}
+			},
+			maskEventDeal: function(event) {
+
+				if (event.target != this.$refs.gisqLibUploadVideoPlayer) {
+					event.stopPropagation();
+				}
+			},
+			closePlayVideoMask: function() {
+				this.showMaskDialog = false;
+				this.gisqVideoUrl = "";
+				this.$refs.gisqLibUploadVideoPlayer.pause();
+			},
+			onPlayerEnded: function(event) {
+
+			},
+			getVideoBase64: function(url) {
+				var _self=this;
+				return new Promise(function(resolve, reject) {
+					let dataURL = '';
+					let video = document.createElement("video");
+					video.setAttribute('crossOrigin', 'anonymous'); //处理跨域
+					video.setAttribute('src', url);
+					video.setAttribute('width', 400);
+					video.setAttribute('height',240);
+					video.currentTime = 2
+					video.addEventListener('loadeddata', function() {
+						console.log(11111)
+						let canvas = document.createElement("canvas");
+						let width = video.width; //canvas的尺寸和图片一样
+						let height = video.height;
+						_self.videoWidth=this.videoWidth;
+						_self.videoHeight=this.videoHeight;
+						var cContext=canvas.getContext("2d");
+						cContext.fillStyle = "#fff";
+						canvas.width = width;
+						canvas.height = height;
+						cContext.fillRect(0, 0, canvas.width, canvas.height);
+						cContext.drawImage(video, 0, 0, width, height); //绘制canvas
+						dataURL = canvas.toDataURL('image/jpeg'); //转换为base64
+						video.currentTime = 0
+						resolve(dataURL);
+					});
+				})
 			}
 		},
 		mounted() {
@@ -300,6 +575,59 @@
 
 <style>
 	@import url("../../src/assets/css/iconfont.css");
+
+
+
+	div.popContainer {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background: rgba(0, 0, 0, 0.3);
+		z-index: 999;
+		padding: 1em;
+	}
+
+	.gisqlib-upload-videomask-close-div {
+		position: absolute;
+		top: -3em;
+		right: -3em;
+		width: 6em;
+		height: 6em;
+		border-radius: 3em;
+		background-color: #00002250;
+	}
+
+	.gisqlib-upload-videomask-close-div:active {
+
+		background-color: #000000;
+	}
+
+	.gisqlib-upload-videomask-closeIcon {
+		position: absolute;
+		bottom: 25%;
+		left: 25%;
+		transform: translate(-25%, 25%);
+		color: #FFFFFF;
+	}
+
+	.gisqlib-upload-video {
+		position: absolute;
+		left: 50%;
+		top: 50%;
+		width: 80%;
+		height: 80%;
+		object-fit: fill;
+		transform: translate(-50%, -50%);
+	}
+
+	.gisq-upload-video-icon {
+		position: absolute;
+		left: 50%;
+		top: 50%;
+		transform: translate(-50%, -50%);
+	}
 
 	.gisq-image-showsmall-div {
 		float: left;
@@ -341,7 +669,8 @@
 		border: 0.0625rem dashed #CFCFCF;
 		margin-right: 0.125rem;
 	}
-	.gisq-small-image{
+
+	.gisq-small-image {
 		text-align: center;
 		width: 5rem;
 		height: 5rem;

@@ -29,6 +29,14 @@ npm run lint
 "v-viewer": "^1.5.1",
 "viewerjs": "^1.9.0"
 ```
+###0.3.0 变更
+```
+支持选择视频和拍摄视频
+```
+###0.3.1 变更
+```
+删除和新增图片钩子函数
+```
 ### Customize configuration
 See [Configuration Reference](https://cli.vuejs.org/config/).
 
