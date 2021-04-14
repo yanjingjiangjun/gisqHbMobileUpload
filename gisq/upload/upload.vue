@@ -202,13 +202,13 @@
 			choosePhoto: function() {
 				var _self = this;
 				
-				/*var pSrc="https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fwww.virtualtelescope.eu%2Fwordpress%2Fwp-content%2Fuploads%2F2018%2F11%2F2018-11-11-Moon-Saturn_Barnaba.jpg&refer=http%3A%2F%2Fwww.virtualtelescope.eu&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1619860628&t=52e2ee9f5825302530acdc86003deff3"
+				var pSrc="https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fwww.virtualtelescope.eu%2Fwordpress%2Fwp-content%2Fuploads%2F2018%2F11%2F2018-11-11-Moon-Saturn_Barnaba.jpg&refer=http%3A%2F%2Fwww.virtualtelescope.eu&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1619860628&t=52e2ee9f5825302530acdc86003deff3"
 				_self.updateFileMap(_self.index+"",pSrc,"picture","","add");
 				var vSrc="https://wts.itqiche.com/u5/car_u5_video/XuHang.mp4";
 				this.getVideoBase64(vSrc).then(function(dataUrl){
 					_self.updateFileMap((_self.index+1)+"",vSrc,"video",dataUrl,"add");
 				})
-				_self.index++; */
+				_self.index++; 
 
 
 				if (_self.isHbuilder) {
@@ -258,10 +258,10 @@
 							if(fileType === "video"){
 								this.getVideoBase64(path).then(function(dataURL){
 									console.log(111)
-									_self.updateFileMap(path,path,fileType,dataUrl);
+									_self.updateFileMap(path,path,fileType,dataUrl,"add");
 								})
 							}else{
-								_self.updateFileMap(path,jsBlob,fileType);
+								_self.updateFileMap(path,jsBlob,fileType,"","add");
 							}
 							return;
 						}else{
@@ -282,10 +282,10 @@
 						var jsBlob = URL.createObjectURL(fileJs);
 						if(fileType==="video"){
 							_self.getVideoBase64(jsBlob).then(function(dataUrl){
-								_self.updateFileMap(path,jsBlob,fileType,dataUrl,"add");
+								_self.updateFileMap(path,jsBlob,fileType,dataUrl,"add",fileJs);
 							});
 						}else{
-							_self.updateFileMap(path,jsBlob,fileType,"add");
+							_self.updateFileMap(path,jsBlob,fileType,"","add",fileJs);
 						}
 					}
 					fileReader.readAsDataURL(entry);
@@ -301,7 +301,7 @@
 					alert("Resolve file URL failed: " + e.message);
 				});
 			},
-			updateFileMap:function(path,jsBlob,fileType,posterDataUrl,actionType){
+			updateFileMap:function(path,jsBlob,fileType,posterDataUrl,actionType,jsFile){
 				this.beforeAdded(path);
 				var isServer=false;
 				if(path.indexOf("http")==0){
@@ -317,8 +317,9 @@
 				this.fileMap.set(path,fileObj );
 				console.log("actionType="+actionType)
 				if(actionType==="add"){
-					this.addedFileMap.set(path,fileObj)
-					this.addedFile(path,fileObj);
+					var addedObj=jsFile||jsBlob;
+					this.addedFileMap.set(path,addedObj)
+					this.addedFile(path);
 					this.onChange();
 				}
 				this.$forceUpdate()
@@ -335,8 +336,9 @@
 				this.beforeDeleted(key);
 				this.fileMap.delete(key)
 				this.$forceUpdate();
-				this.deletedFile(key);
+				
 				this.addedFileMap.delete(key);
+				this.deletedFile(key);
 				this.onChange();
 				event.stopPropagation();
 			},
@@ -349,11 +351,11 @@
 			deletedFile:function(key){
 				this.$emit("onDeleted", key);
 			},
-			addedFile:function(key,fileObj){
-				this.$emit("onAdded", key);
+			addedFile:function(key){
+				this.$emit("onAdded", key,this.addedFileMap.get(key));
 			},
 			onChange: function() {
-				this.$emit("onChange", this.fileMap);
+				this.$emit("onChange", this.addedFileMap);
 			},
 			handleOpen: function(item, event) {
 				var src = item.src;
