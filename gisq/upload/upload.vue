@@ -1,7 +1,7 @@
 <template>
 	<div class="uploadRoot" style="">
 		<div style="" class="zoomimages" v-viewer="zoomOptions">
-			<div v-for="(item,key) in fileMap" style="" class="gisq-image-showsmall-div" @click="handleOpen(item[1],$event)">
+			<div v-for="(item,key) in fileMap" style="" class="gisq-image-showsmall-div" @click="handleOpen(item[1],$event)" :ckey="fileMapStateTrack">
 				<img :src="item[1].type=='picture'?item[1].src:item[1].poster" :key="item[0]" 
 				class="gisq-small-image" ></img>
 				<div style="" class="gisqUpload gisqUpload-delete-root-div" @click="deleteSelectedFile(item[0])"
@@ -38,6 +38,7 @@
 			</div>
 
 		</div>
+		<input hidden="hidden" type="file" multiple="multiple" accept="image/*,video/*" ref="gisqLibUploadInputFileH5"/>
 	</div>
 </template>
 
@@ -90,6 +91,7 @@
 		},
 		data() {
 			return {
+				fileMapStateTrack:0,
 				gisqVideoUrl: "",
 				showMaskDialog: false,
 				videoHeight:240,
@@ -166,15 +168,76 @@
 				this.iShow = true;
 			},
 			clickOnSheet: function(obj) {
-				if (obj.id == 1) {
-					this.takePhoto();
-				} else {
-					this.choosePhoto();
+				if(this.isHbuilder==true){
+					try{
+						var cameraActivity = plus.android.importClass(
+							"com.zjzs.gisq.jetpack.aar_camara.CamaraActivity");
+							if (obj.id == 1) {
+								this.takePhoto();
+								
+							} else {
+								this.choosePhoto();
+							}
+							
+					}catch(e){
+						//to call H5's takePhoto
+						if (obj.id == 1) {
+							this.takePhotoH5();
+							
+						} else {
+							this.choosePhotoH5();
+						}
+					}
+				}else{
+					//to call H5's takePhoto
+					if (obj.id == 1) {
+						this.takePhotoH5();
+						
+					} else {
+						this.choosePhotoH5();
+					}
+				}
+				
+			},
+			takePhotoH5:function(){
+				var h5FileEl=this.$refs.gisqLibUploadInputFileH5;
+				var _self=this;
+				h5FileEl.onchange=function(e){
+					_self.handleH5InputChange(this.files);
+				}
+				h5FileEl.click();
+			},
+			choosePhotoH5:function(){
+				var _self=this;
+				var h5FileEl=this.$refs.gisqLibUploadInputFileH5;
+				h5FileEl.onchange=function(e){
+					_self.handleH5InputChange(this.files);
+				}
+				h5FileEl.click();
+			},
+			handleH5InputChange:function(files){
+				if(!!files){
+					console.log(files)
+					for(var i=0;i<files.length;i++){
+						this.readH5File(files[i]);
+					}
+				}
+			},
+			readH5File:function(file){
+				var jsBlob = URL.createObjectURL(file);
+				var fileType=this.getFileType(file.name);
+				var _self=this;
+				if(fileType==="video"){
+					_self.getVideoBase64(jsBlob).then(function(dataUrl){
+						_self.updateFileMap(file.name,jsBlob,fileType,dataUrl,"add",file);
+					});
+				}else{
+					_self.updateFileMap(file.name,jsBlob,fileType,"","add",file);
 				}
 			},
 			takePhoto: function() {
 				var _self = this;
-				if (_self.isHbuilder) {
+				if (_self.isHbuilder==true) {
 					var main = plus.android.runtimeMainActivity();
 					var Intent = plus.android.importClass("android.content.Intent");
 					var cameraActivity = plus.android.importClass(
@@ -202,16 +265,16 @@
 			choosePhoto: function() {
 				var _self = this;
 				
-				var pSrc="https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fwww.virtualtelescope.eu%2Fwordpress%2Fwp-content%2Fuploads%2F2018%2F11%2F2018-11-11-Moon-Saturn_Barnaba.jpg&refer=http%3A%2F%2Fwww.virtualtelescope.eu&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1619860628&t=52e2ee9f5825302530acdc86003deff3"
+				/* var pSrc="https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fwww.virtualtelescope.eu%2Fwordpress%2Fwp-content%2Fuploads%2F2018%2F11%2F2018-11-11-Moon-Saturn_Barnaba.jpg&refer=http%3A%2F%2Fwww.virtualtelescope.eu&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1619860628&t=52e2ee9f5825302530acdc86003deff3"
 				_self.updateFileMap(_self.index+"",pSrc,"picture","","add");
 				var vSrc="https://wts.itqiche.com/u5/car_u5_video/XuHang.mp4";
 				this.getVideoBase64(vSrc).then(function(dataUrl){
 					_self.updateFileMap((_self.index+1)+"",vSrc,"video",dataUrl,"add");
 				})
-				_self.index++; 
+				_self.index++; */
 
 
-				if (_self.isHbuilder) {
+				if (_self.isHbuilder==true) {
 					// 从相册中选择图片
 					console.log("从相册中选择多张图片:");
 					plus.gallery.pick(function(e) {
@@ -248,7 +311,7 @@
 			},
 			parseFile: function(path) {
 				var _self = this;
-				if (_self.isHbuilder) {
+				if (_self.isHbuilder==true) {
 					if(!!path){
 						var types = path.split(".")
 						var fileType = "picture";
@@ -261,7 +324,7 @@
 									_self.updateFileMap(path,path,fileType,dataUrl,"add");
 								})
 							}else{
-								_self.updateFileMap(path,jsBlob,fileType,"","add");
+								_self.updateFileMap(path,path,fileType,"","add");
 							}
 							return;
 						}else{
@@ -274,7 +337,7 @@
 			},
 			readFile: function(path,fileType, entry) {
 				var _self = this;
-				if (_self.isHbuilder && (!!path)) {
+				if (_self.isHbuilder==true && (!!path)) {
 					var fileReader = new plus.io.FileReader();
 					fileReader.onloadend = function(evt) {
 						var url = evt.target.result;
@@ -315,14 +378,15 @@
 					isServer:isServer,
 				}
 				this.fileMap.set(path,fileObj );
-				console.log("actionType="+actionType)
+				this.fileMapStateTrack++;
+				console.log(this.fileMap)
 				if(actionType==="add"){
 					var addedObj=jsFile||jsBlob;
 					this.addedFileMap.set(path,addedObj)
 					this.addedFile(path);
 					this.onChange();
 				}
-				this.$forceUpdate()
+				//this.$forceUpdate()
 			},
 			plusReady: function(callback) {
 				if (window.plus) {
@@ -335,7 +399,8 @@
 				var fileObj=this.fileMap.get(key)
 				this.beforeDeleted(key);
 				this.fileMap.delete(key)
-				this.$forceUpdate();
+				this.fileMapStateTrack--;
+				//this.$forceUpdate();
 				
 				this.addedFileMap.delete(key);
 				this.deletedFile(key);

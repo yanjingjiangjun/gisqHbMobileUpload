@@ -1,13 +1,5 @@
 <template>
 	<div id="app">
-		<!-- <popup v-model="currentValue">
-			<div class="addresTitle">
-				<span @click="currentValue = false">取消</span>
-				<span @click="onConfirm">确定</span>
-				<p>所在地区</p>
-
-			</div>
-		</popup> -->
 		<gisq-upload @onChange="onChange" @onAdded="onAdded" @onBeforeAdded="onBeforeAdded" @onBeforeDeleted="onBeforeDeleted" @onDeleted="onDeleted" v-bind:files.sync="showFiles" ></gisq-upload>
 	</div>
 
@@ -32,11 +24,13 @@
 		methods: {
 			onChange:function(fileMap){
 				console.log("onChange")
-				console.log(fileMap)
+				for(let key of fileMap.keys()){
+					//alert("dddd="+fileMap.get(key).lastModifiedDate)
+				}
 			},
-			onAdded:function(path){
+			onAdded:function(path,fileObj){
 				console.log("onAdded="+path)
-				//console.log(fileObj)
+				console.log(fileObj)
 			},
 			onDeleted:function(path){
 				console.log("onDeleted")
