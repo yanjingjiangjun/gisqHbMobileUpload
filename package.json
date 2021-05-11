@@ -1,6 +1,6 @@
 {
   "name": "gisq-hb-mobile-upload",
-  "version": "0.3.1",
+  "version": "0.4.9",
   "private": false,
   "main": "lib/gisqMobileUpload.umd.min.js",
   "keywords": [
@@ -26,9 +26,10 @@
   },
   "dependencies": {
     "core-js": "^2.6.5",
+    "v-viewer": "^1.5.1",
+    "viewerjs": "^1.9.0",
     "vue": "^2.6.10",
-	"v-viewer": "^1.5.1",
-	"viewerjs": "^1.9.0"
+    "vue-router": "^3.5.1"
   },
   "devDependencies": {
     "@babel/preset-react": "^7.12.10",

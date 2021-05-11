@@ -4,7 +4,7 @@
 			<div v-for="(item,key) in fileMap" style="" class="gisq-image-showsmall-div" @click="handleOpen(item[1],$event)" :ckey="fileMapStateTrack">
 				<img :src="item[1].type=='picture'?item[1].src:item[1].poster" :key="item[0]" 
 				class="gisq-small-image" ></img>
-				<div style="" class="gisqUpload gisqUpload-delete-root-div" @click="deleteSelectedFile(item[0])"
+				<div style="" class="gisqUpload gisqUpload-delete-root-div" @click="showDelDialogAction(item[0],$event)"
 					:cKey="item[0]">
 					<span class="iconfont-gisqupload icon-shanchu gisqUpload-icon-delete-span" style="">
 
@@ -16,7 +16,7 @@
 				</div>
 			</div>
 			<div style="" @click="showSheet" class="gisqupload-div-action-plus">
-				<span class="iconfont-gisqupload icon-plus-line" style="font-size: 2rem;"></span>
+				<span class="iconfont-gisqupload icon-plus-line" ></span>
 			</div>
 		</div>
 
@@ -39,6 +39,7 @@
 
 		</div>
 		<input hidden="hidden" type="file" multiple="multiple" accept="image/*,video/*" ref="gisqLibUploadInputFileH5"/>
+		<dialog-bar v-model="showDelDialog" type="danger" title="警告!" content="确定删除图片?" v-on:cancel="clickCancel()" @danger="clickDanger()" @confirm="clickConfirm()" dangerText="删除"></dialog-bar>
 	</div>
 </template>
 
@@ -48,6 +49,8 @@
 	//import duoImageViewer from "./photoView/src/index.vue"
 	import Viewer from 'v-viewer'
 	import Vue from 'vue'
+	import dialogBar from './dialog.vue'
+
 	Vue.use(Viewer)
 
 
@@ -56,7 +59,7 @@
 	export default {
 		name: "gisqUpload",
 		components: {
-			gisqSheet,
+			gisqSheet,dialogBar
 			//duoImageViewer
 		},
 		props:{
@@ -91,6 +94,8 @@
 		},
 		data() {
 			return {
+				delKey:"",
+				showDelDialog:false,
 				fileMapStateTrack:0,
 				gisqVideoUrl: "",
 				showMaskDialog: false,
@@ -146,6 +151,18 @@
 			}
 		},
 		methods: {
+			clickCancel:function(){
+				console.log('点击了取消');
+				this.delKey="";
+			},
+			clickDanger:function(){
+				console.log('这里是danger回调')
+				this.deleteSelectedFile(this.delKey);
+				this.delKey="";
+			},
+			clickConfirm:function(){
+				console.log('点击了confirm');
+			},
 			getFileType:function(path){
 				var fileType = "picture";
 				if(!!path){
@@ -386,7 +403,7 @@
 					this.addedFile(path);
 					this.onChange();
 				}
-				//this.$forceUpdate()
+				this.$forceUpdate()
 			},
 			plusReady: function(callback) {
 				if (window.plus) {
@@ -395,12 +412,18 @@
 					document.addEventListener('plusready', callback);
 				}
 			},
+			showDelDialogAction:function(key,e){
+				this.showDelDialog=true;
+				this.delKey=key;
+				e.stopPropagation();
+			},
 			deleteSelectedFile: function(key) {
-				var fileObj=this.fileMap.get(key)
+				this.$refs.gisqLibUploadInputFileH5.value="";
+				var fileObj=this.fileMap.get(key);
 				this.beforeDeleted(key);
 				this.fileMap.delete(key)
 				this.fileMapStateTrack--;
-				//this.$forceUpdate();
+				this.$forceUpdate();
 				
 				this.addedFileMap.delete(key);
 				this.deletedFile(key);
@@ -653,16 +676,16 @@
 		bottom: 0;
 		background: rgba(0, 0, 0, 0.3);
 		z-index: 999;
-		padding: 1em;
+		padding: 16px;
 	}
 
 	.gisqlib-upload-videomask-close-div {
 		position: absolute;
-		top: -3em;
-		right: -3em;
-		width: 6em;
-		height: 6em;
-		border-radius: 3em;
+		top: -40px;
+		right: -40px;
+		width: 80px;
+		height: 80px;
+		border-radius: 40px;
 		background-color: #00002250;
 	}
 
@@ -673,9 +696,9 @@
 
 	.gisqlib-upload-videomask-closeIcon {
 		position: absolute;
-		bottom: 25%;
-		left: 25%;
-		transform: translate(-25%, 25%);
+		bottom: 10%;
+		left: 30%;
+		transform: translate(-50%, -50%);
 		color: #FFFFFF;
 	}
 
@@ -711,11 +734,11 @@
 
 	.gisqUpload-delete-root-div {
 		position: absolute;
-		width: 3rem;
-		height: 3rem;
+		width: 50px;
+		height: 50px;
 		background-color: red;
-		top: -1.5rem;
-		right: -1.5rem;
+		top: -25px;
+		right: -25px;
 		z-index: 999;
 		transform: rotate(45deg);
 	}
@@ -729,17 +752,18 @@
 
 	.gisqupload-div-action-plus {
 		float: left;
-		width: 5rem;
-		height: 5rem;
-		line-height: 5rem;
+		width: 80px;
+		height: 80px;
+		line-height: 80px;
 		text-align: center;
-		border: 0.0625rem dashed #CFCFCF;
-		margin-right: 0.125rem;
+		border: 1px dashed #CFCFCF;
+		margin-right: 2px;
 	}
 
 	.gisq-small-image {
 		text-align: center;
-		width: 5rem;
-		height: 5rem;
+		width: 80px;
+		height: 80px;
+		object-fit: contain;
 	}
 </style>

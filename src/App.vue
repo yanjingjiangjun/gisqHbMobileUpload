@@ -1,6 +1,8 @@
 <template>
 	<div id="app">
 		<gisq-upload @onChange="onChange" @onAdded="onAdded" @onBeforeAdded="onBeforeAdded" @onBeforeDeleted="onBeforeDeleted" @onDeleted="onDeleted" v-bind:files.sync="showFiles" ></gisq-upload>
+		<button @click="toTakePic()" style="width: 6.25rem;height: 6.25rem;">世世代代</button>
+		<router-view></router-view>
 	</div>
 
 </template>
@@ -43,6 +45,10 @@
 			onBeforeDeleted:function(path){
 				console.log("onBeforeDeleted")
 				console.log(path)
+			},
+			toTakePic:function(){
+				 //this.$router.replace({path:'/takePic',name:"takePic"});  
+				 this.$router.push('/takePic')
 			},
 		}
 	}
