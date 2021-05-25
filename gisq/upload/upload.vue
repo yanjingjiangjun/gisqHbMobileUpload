@@ -74,7 +74,15 @@
 				deep:true,
 				immediate:true,
 				handler(newVal,oldVal){
+					console.log(this.files)
 					if(!this.files) return;
+					if(this.files.length==0){
+						console.log(1)
+						this.refresh();
+						return;
+					}
+					this.addedFileMap=new Map();
+					this.fileMap=new Map();
 					for(var i=0;i<this.files.length;i++){
 						var fileType=this.getFileType(this.files[i]);
 						var path=this.files[i];
@@ -151,6 +159,12 @@
 			}
 		},
 		methods: {
+			refresh:function(){
+				this.addedFileMap=new Map();
+				this.fileMap=new Map();
+				this.$forceUpdate();
+				this.onChange();
+			},
 			clickCancel:function(){
 				console.log('点击了取消');
 				this.delKey="";

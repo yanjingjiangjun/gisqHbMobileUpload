@@ -37,6 +37,12 @@ npm run lint
 ```
 删除和新增图片钩子函数
 ```
+###0.5.0
+```
+支持v-bind:files.sync="showFiles" 刷新组件数据
+支持删除提示
+
+```
 ### Customize configuration
 See [Configuration Reference](https://cli.vuejs.org/config/).
 

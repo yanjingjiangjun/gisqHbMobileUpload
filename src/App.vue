@@ -1,7 +1,7 @@
 <template>
 	<div id="app">
-		<gisq-upload @onChange="onChange" @onAdded="onAdded" @onBeforeAdded="onBeforeAdded" @onBeforeDeleted="onBeforeDeleted" @onDeleted="onDeleted" v-bind:files.sync="showFiles" ></gisq-upload>
-		<button @click="toTakePic()" style="width: 6.25rem;height: 6.25rem;">世世代代</button>
+		<gisq-upload @onChange="onChange" @onAdded="onAdded" @onBeforeAdded="onBeforeAdded" @onBeforeDeleted="onBeforeDeleted" @onDeleted="onDeletedX" v-bind:files.sync="showFiles" ></gisq-upload>
+		<button @click="toTakePic()" style="width: 6.25rem;height: 6.25rem;">测试</button>
 		<router-view></router-view>
 	</div>
 
@@ -16,6 +16,7 @@
 		},
 		data() {
 			return {
+				files:[],
 				//showFiles:[],
 				 showFiles:["https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fwww.virtualtelescope.eu%2Fwordpress%2Fwp-content%2Fuploads%2F2018%2F11%2F2018-11-11-Moon-Saturn_Barnaba.jpg&refer=http%3A%2F%2Fwww.virtualtelescope.eu&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1619860628&t=52e2ee9f5825302530acdc86003deff3"
 				,
@@ -33,10 +34,23 @@
 			onAdded:function(path,fileObj){
 				console.log("onAdded="+path)
 				console.log(fileObj)
+				this.files.push(fileObj);
 			},
-			onDeleted:function(path){
+			onDeletedX:function(path){
 				console.log("onDeleted")
 				console.log(path)
+				this.onDeleted(path,this.files)
+			},
+			onDeleted:function(path,fileList){
+				console.log("onDeleted")
+				console.log(path)
+				fileList.forEach((item,index)=>{
+					if(item.name==path){
+						let index = fileList.indexOf(item)
+						fileList.splice(index,1)
+					}
+				})
+				console.log(this.files)
 			},
 			onBeforeAdded:function(path){
 				console.log("onBeforeAdded")
@@ -48,7 +62,9 @@
 			},
 			toTakePic:function(){
 				 //this.$router.replace({path:'/takePic',name:"takePic"});  
-				 this.$router.push('/takePic')
+				 //this.$router.push('/takePic')
+				 this.showFiles=[];
+				 //this.$forceUpdate()
 			},
 		}
 	}
