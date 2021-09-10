@@ -1,7 +1,7 @@
 <template>
 	<div id="app">
-		<gisq-upload :onCustomPrewer="onCustomPrewer" @onChange="onChange" @onAdded="onAdded" @onBeforeAdded="onBeforeAdded" @onBeforeDeleted="onBeforeDeleted" @onDeleted="onDeletedX" v-bind:files.sync="showFiles" ></gisq-upload>
-		<button @click="toTakePic()" style="width: 6.25rem;height: 6.25rem;">测试</button>
+		<gisq-upload @onChange="onChange" @onAdded="onAdded" @onBeforeAdded="onBeforeAdded" @onBeforeDeleted="onBeforeDeleted" @onDeleted="onDeletedX" v-bind:files.sync="showFiles" ></gisq-upload>
+		<a href="http://127.0.0.1:30044/GisQMobileRest/api/report/export?type=all">测试</a>
 		<router-view></router-view>
 	</div>
 

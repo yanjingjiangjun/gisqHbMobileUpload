@@ -209,20 +209,16 @@
 			clickOnSheet: function(obj) {
 				if(this.isHbuilder==true){
 					try{
-						alert(12);
 						var cameraActivity = plus.android.importClass(
 							"com.zjzs.gisq.jetpack.aar_camara.CamaraActivity");
-							alert(cameraActivity);
 							if (obj.id == 1) {
 								this.takePhoto();
 								
 							} else {
 								this.choosePhoto();
 							}
-							alert(13);
 					}catch(e){
 						//to call H5's takePhoto
-						alert(e);
 						if (obj.id == 1) {
 							this.takePhotoH5();
 							
@@ -280,19 +276,23 @@
 			takePhoto: function() {
 				var _self = this;
 				if (_self.isHbuilder==true) {
-					var main = plus.android.runtimeMainActivity();
+					/* var main = plus.android.runtimeMainActivity();
 					var IntentA = plus.android.importClass("android.content.Intent");
-					alert(IntentA);
 					//var cameraActivity = plus.android.importClass("com.zjzs.gisq.jetpack.aar_camara.CamaraActivity"); //自己写的二维码扫描页面
 					//alert(cameraActivity)
 					//var intent = new Intent(main, cameraActivity.class);
 					
 					//intent.setClassName(main, cameraActivity.class);
-					var intent = new IntentA();
-					alert(0);
+					var intent = new IntentA(); */
 					 //intent.setPackage("com.zjzs.gisq.qcjg");
-					intent.setAction("com.zjzs.gisq.jetpack.aar_camara.CamaraActivity");
-					alert(1);
+					//intent.setAction("com.zjzs.gisq.jetpack.aar_camara.CamaraActivity");
+					
+					var main = plus.android.runtimeMainActivity();
+					var Intent = plus.android.importClass("android.content.Intent");
+					var cameraActivity = plus.android.importClass(
+						"com.zjzs.gisq.jetpack.aar_camara.CamaraActivity"); //自己写的二维码扫描页面
+					var intent = new Intent(main, cameraActivity.class);
+					//intent.setClassName(main, cameraActivity.class);
 					main.onActivityResult = function(requestCode, resultCode, data) {
 						if (100 == requestCode) {
 							plus.android.importClass(data);

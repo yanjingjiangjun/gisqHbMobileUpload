@@ -1,6 +1,6 @@
 {
   "name": "gisq-hb-mobile-upload",
-  "version": "0.5.2",
+  "version": "0.5.4",
   "private": false,
   "main": "lib/gisqMobileUpload.umd.min.js",
   "keywords": [
