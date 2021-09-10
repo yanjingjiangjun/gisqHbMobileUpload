@@ -1,6 +1,6 @@
 <template>
 	<div id="app">
-		<gisq-upload @onChange="onChange" @onAdded="onAdded" @onBeforeAdded="onBeforeAdded" @onBeforeDeleted="onBeforeDeleted" @onDeleted="onDeletedX" v-bind:files.sync="showFiles" ></gisq-upload>
+		<gisq-upload :onCustomPrewer="onCustomPrewer" @onChange="onChange" @onAdded="onAdded" @onBeforeAdded="onBeforeAdded" @onBeforeDeleted="onBeforeDeleted" @onDeleted="onDeletedX" v-bind:files.sync="showFiles" ></gisq-upload>
 		<button @click="toTakePic()" style="width: 6.25rem;height: 6.25rem;">测试</button>
 		<router-view></router-view>
 	</div>
@@ -18,13 +18,16 @@
 			return {
 				files:[],
 				//showFiles:[],
-				 showFiles:["https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fwww.virtualtelescope.eu%2Fwordpress%2Fwp-content%2Fuploads%2F2018%2F11%2F2018-11-11-Moon-Saturn_Barnaba.jpg&refer=http%3A%2F%2Fwww.virtualtelescope.eu&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1619860628&t=52e2ee9f5825302530acdc86003deff3"
-				,
-				"https://wts.itqiche.com/u5/car_u5_video/XuHang.mp4",
+				 showFiles:[
+				"video/1.mp4",
+				"video/2.mp4",
 				] 
 			}
 		},
 		methods: {
+			onCustomPrewer:function(src){
+				console.log(1111111333);
+			},
 			onChange:function(fileMap){
 				console.log("onChange")
 				for(let key of fileMap.keys()){

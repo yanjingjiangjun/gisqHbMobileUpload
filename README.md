@@ -43,6 +43,19 @@ npm run lint
 支持删除提示
 
 ```
+###0.5.1
+```
+支持 自定义预览
+
+```
+
+###0.5.2
+```
+重写多视频回显 
+
+```
+### 
+
 ### Customize configuration
 See [Configuration Reference](https://cli.vuejs.org/config/).
 

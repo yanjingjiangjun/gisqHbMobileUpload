@@ -68,6 +68,10 @@
 			onBeforeAdded:Function,
 			onDeleted:Function,
 			onAdded:Function,
+			onCustomPrewer:{
+				type:Function,
+				default:undefined
+			},
 		},
 		watch:{
 			files:{
@@ -86,11 +90,9 @@
 					for(var i=0;i<this.files.length;i++){
 						var fileType=this.getFileType(this.files[i]);
 						var path=this.files[i];
+						console.log(fileType)
 						if(fileType=="video"){
-							var _self=this;
-							this.getVideoBase64(path).then(function(dataUrl){
-								_self.updateFileMap(path,path,fileType,dataUrl,"show");
-							})
+							this.dealVideo(path,'video');
 						}else{
 							this.updateFileMap(path,path,fileType,"","show");
 						}
@@ -159,6 +161,12 @@
 			}
 		},
 		methods: {
+			dealVideo:function(path,fileType){
+				var _self=this;
+				this.getVideoBase64(path).then(function(dataUrl){
+					_self.updateFileMap(path,path,fileType,dataUrl,"show");
+				})
+			},
 			refresh:function(){
 				this.addedFileMap=new Map();
 				this.fileMap=new Map();
@@ -201,17 +209,20 @@
 			clickOnSheet: function(obj) {
 				if(this.isHbuilder==true){
 					try{
+						alert(12);
 						var cameraActivity = plus.android.importClass(
 							"com.zjzs.gisq.jetpack.aar_camara.CamaraActivity");
+							alert(cameraActivity);
 							if (obj.id == 1) {
 								this.takePhoto();
 								
 							} else {
 								this.choosePhoto();
 							}
-							
+							alert(13);
 					}catch(e){
 						//to call H5's takePhoto
+						alert(e);
 						if (obj.id == 1) {
 							this.takePhotoH5();
 							
@@ -270,12 +281,18 @@
 				var _self = this;
 				if (_self.isHbuilder==true) {
 					var main = plus.android.runtimeMainActivity();
-					var Intent = plus.android.importClass("android.content.Intent");
-					var cameraActivity = plus.android.importClass(
-						"com.zjzs.gisq.jetpack.aar_camara.CamaraActivity"); //自己写的二维码扫描页面
-					var intent = new Intent(main, cameraActivity.class);
+					var IntentA = plus.android.importClass("android.content.Intent");
+					alert(IntentA);
+					//var cameraActivity = plus.android.importClass("com.zjzs.gisq.jetpack.aar_camara.CamaraActivity"); //自己写的二维码扫描页面
+					//alert(cameraActivity)
+					//var intent = new Intent(main, cameraActivity.class);
+					
 					//intent.setClassName(main, cameraActivity.class);
-
+					var intent = new IntentA();
+					alert(0);
+					 //intent.setPackage("com.zjzs.gisq.qcjg");
+					intent.setAction("com.zjzs.gisq.jetpack.aar_camara.CamaraActivity");
+					alert(1);
 					main.onActivityResult = function(requestCode, resultCode, data) {
 						if (100 == requestCode) {
 							plus.android.importClass(data);
@@ -470,6 +487,11 @@
 					event.stopPropagation();
 					return;
 				} else {
+					if(!!this.onCustomPrewer==true){
+						this.onCustomPrewer(src);
+						event.stopPropagation();
+						return;
+					}
 					this.bigSrc = src
 					this.showViewer = !this.showViewer
 					const viewer = this.$el.querySelector('.zoomimages').$viewer
