@@ -3,7 +3,7 @@
 		<div style="" class="zoomimages" v-viewer="zoomOptions">
 			<div v-for="(item,key) in fileMap" style="" class="gisq-image-showsmall-div" @click="handleOpen(item[1],$event)" :ckey="fileMapStateTrack">
 				<img :src="item[1].type=='picture'?item[1].src:item[1].poster" :key="item[0]" 
-				class="gisq-small-image" ></img>
+				class="gisq-small-image" :alt="item[0]"></img>
 				<div style="" class="gisqUpload gisqUpload-delete-root-div" @click="showDelDialogAction(item[0],$event)"
 					:cKey="item[0]">
 					<span class="iconfont-gisqupload icon-shanchu gisqUpload-icon-delete-span" style="">
@@ -39,6 +39,7 @@
 
 		</div>
 		<input hidden="hidden" type="file" multiple="multiple" accept="image/*,video/*" ref="gisqLibUploadInputFileH5"/>
+		<input hidden="hidden" type="file" multiple="multiple" accept="video/*" ref="gisqLibUploadInputFileVideoH5"/>
 		<dialog-bar v-model="showDelDialog" type="danger" title="警告!" content="确定删除图片?" v-on:cancel="clickCancel()" @danger="clickDanger()" @confirm="clickConfirm()" dangerText="删除"></dialog-bar>
 	</div>
 </template>
@@ -50,13 +51,15 @@
 	import Viewer from 'v-viewer'
 	import Vue from 'vue'
 	import dialogBar from './dialog.vue'
-
+	import {getDeviceInfo} from './util/device.js'
+	import {readLocalFile,dataURLtoFile} from './util/fileUtils.js'
 	Vue.use(Viewer)
 
-
+	let hbuilder=false;
 	//Viewer.setDefaults( {Options:{ "inline": true, "button": true, "navbar": true, "title": true, "toolbar": false, "tooltip": true, "movable": true, "zoomable": true, "rotatable": true, "scalable": true, "transition": true, "fullscreen": true, "keyboard": true, "url": "data-source" } })
 
 	export default {
+		getDeviceInfo,readLocalFile,
 		name: "gisqUpload",
 		components: {
 			gisqSheet,dialogBar
@@ -123,7 +126,10 @@
 						id: 2,
 						name: "选取图片",
 					},
-
+					{
+						id: 3,
+						name: "选取视频",
+					}
 				],
 				addedFileMap:new Map(),
 				fileMap: new Map(),
@@ -214,7 +220,9 @@
 							if (obj.id == 1) {
 								this.takePhoto();
 								
-							} else {
+							} else if(obj.id==3){
+								this.chooseVideoH5();
+							}else {
 								this.choosePhoto();
 							}
 					}catch(e){
@@ -222,6 +230,8 @@
 						if (obj.id == 1) {
 							this.takePhotoH5();
 							
+						}else if(obj.id==3){
+							this.chooseVideoH5();
 						} else {
 							this.choosePhotoH5();
 						}
@@ -231,6 +241,8 @@
 					if (obj.id == 1) {
 						this.takePhotoH5();
 						
+					}else if(obj.id==3){
+						this.chooseVideoH5();
 					} else {
 						this.choosePhotoH5();
 					}
@@ -240,6 +252,14 @@
 			takePhotoH5:function(){
 				var h5FileEl=this.$refs.gisqLibUploadInputFileH5;
 				var _self=this;
+				h5FileEl.onchange=function(e){
+					_self.handleH5InputChange(this.files);
+				}
+				h5FileEl.click();
+			},
+			chooseVideoH5:function(){
+				var _self=this;
+				var h5FileEl=this.$refs.gisqLibUploadInputFileVideoH5;
 				h5FileEl.onchange=function(e){
 					_self.handleH5InputChange(this.files);
 				}
@@ -333,9 +353,9 @@
 					}, function(e) {
 						console.log("取消选择图片");
 					}, {
-						filter: "none",
+						filter: "image",
 						multiple: true,
-						maximum: 4,
+						maximum: 100000,
 						system: false,
 						onmaxed: function() {
 							plus.nativeUI.alert('最多只能选择4张图片');
@@ -343,19 +363,6 @@
 					});
 				}
 
-			},
-			dataURLtoFile: function(dataurl, filename) { //将base64转换为文件
-				var arr = dataurl.split(','),
-					mime = arr[0].match(/:(.*?);/)[1],
-					bstr = atob(arr[1]),
-					n = bstr.length,
-					u8arr = new Uint8Array(n);
-				while (n--) {
-					u8arr[n] = bstr.charCodeAt(n);
-				}
-				return new File([u8arr], filename, {
-					type: mime
-				});
 			},
 			parseFile: function(path) {
 				var _self = this;
@@ -377,6 +384,9 @@
 							return;
 						}else{
 							_self.readLocalFile(path,fileType);
+							/* readLocalFile(path,function(fileJs,jsBlob){
+								_self.updateFileMap(path,jsBlob,fileType,"","add",fileJs);
+							}); */
 						}
 							
 					}
@@ -389,7 +399,7 @@
 					var fileReader = new plus.io.FileReader();
 					fileReader.onloadend = function(evt) {
 						var url = evt.target.result;
-						var fileJs = _self.dataURLtoFile(url, entry.name); //转换为js 的file对象 
+						var fileJs = dataURLtoFile(url, entry.name); //转换为js 的file对象 
 						var jsBlob = URL.createObjectURL(fileJs);
 						if(fileType==="video"){
 							_self.getVideoBase64(jsBlob).then(function(dataUrl){
@@ -683,20 +693,27 @@
 						resolve(dataURL);
 					});
 				})
-			}
+			},
+			
 		},
 		mounted() {
 			var _self = this;
 			this.plusReady(function() {
+				hbuilder=true;
 				_self.isHbuilder = true;
+				
 			});
-
 		},
 		created() {
 			//alert(1)
 		},
-
+		
 	}
+	/* export function getDeviceInfo(callback){
+		console.log("call getDeviceInfo success" )
+		if(hbuilder==false) throw "请在hbuilder环境使用";
+		if(!!callback&&hbuilder==true) callback(plus.device.getInfo(options));
+	} */
 </script>
 
 <style>

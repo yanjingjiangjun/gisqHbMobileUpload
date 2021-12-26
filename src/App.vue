@@ -1,7 +1,8 @@
 <template>
 	<div id="app">
 		<gisq-upload @onChange="onChange" @onAdded="onAdded" @onBeforeAdded="onBeforeAdded" @onBeforeDeleted="onBeforeDeleted" @onDeleted="onDeletedX" v-bind:files.sync="showFiles" ></gisq-upload>
-		<a href="http://127.0.0.1:30044/GisQMobileRest/api/report/export?type=all">测试</a>
+		<span  @click="testGetInfo">测试</span>
+		<img :src="testSrc"/>
 		<router-view></router-view>
 	</div>
 
@@ -16,11 +17,12 @@
 		},
 		data() {
 			return {
+				testSrc:null,
 				files:[],
 				//showFiles:[],
 				 showFiles:[
-				"video/1.mp4",
-				"video/2.mp4",
+				"file://video/1.png",
+				"file://video/2.png",
 				] 
 			}
 		},
@@ -32,6 +34,7 @@
 				console.log("onChange")
 				for(let key of fileMap.keys()){
 					//alert("dddd="+fileMap.get(key).lastModifiedDate)
+					console.log(key)
 				}
 			},
 			onAdded:function(path,fileObj){
@@ -69,7 +72,22 @@
 				 this.showFiles=[];
 				 //this.$forceUpdate()
 			},
-		}
+			testGetInfo(){
+				console.log(gisqUpload)
+				gisqUpload.getDeviceInfo(function(info){
+					console.log(JSON.stringify(info))
+				})
+				var _this=this;
+				var path="file:///sdcard/gisqmap/161776021489153.jpeg";
+				gisqUpload.readLocalFile(path,function(fileJs,jsBlob){
+					_this.testSrc=jsBlob;
+				});
+			}
+		},
+		mounted() {
+			
+
+		},
 	}
 </script>
 

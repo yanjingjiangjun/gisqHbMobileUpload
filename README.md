@@ -54,7 +54,20 @@ npm run lint
 重写多视频回显 
 
 ```
-### 
+
+###0.5.6
+```
+选图片最大支持100000张 取消4张限制
+
+```
+###
+
+###0.5.7
+```
+原有视频图片一起选择 ，改为单独选择 防止hbuilder限制50m
+
+```
+###
 
 ### Customize configuration
 See [Configuration Reference](https://cli.vuejs.org/config/).
@@ -113,6 +126,20 @@ npm publish --registry http://registry.npmjs.org
 				console.log("onBeforeDeleted")
 				console.log(path)
 			},
+			testParseLocalFile:function(){
+				//仅限于hbuilder打包环境
+				var _this=this;
+				var path="file:///sdcard/gisqmap/161776021489153.jpeg";
+				gisqUpload.readLocalFile(path,function(fileJs,jsBlob){
+					_this.testSrc=jsBlob;
+				});
+			},
+			testGetDeviceInfo:function(){
+				//仅限于hbuilder打包环境
+				gisqUpload.getDeviceInfo(function(info){
+					console.log(JSON.stringify(info))
+				})
+			}
 		}
 	}
 </script>
