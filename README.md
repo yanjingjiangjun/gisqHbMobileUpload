@@ -19,6 +19,10 @@ npm run build
 ```
 npm run test
 ```
+### compile to a lib 
+```
+npm run lib
+```
 
 ### Lints and fixes files
 ```
@@ -65,6 +69,25 @@ npm run lint
 ###0.5.7
 ```
 原有视频图片一起选择 ，改为单独选择 防止hbuilder限制50m
+
+```
+###0.5.8
+```
+支持调用原生拍照时，传参数
+v-bind:extraInfo="extraInfo"
+父组件调用例子：
+<div id="app">
+		<gisq-upload @onChange="onChange" 
+		@onAdded="onAdded" 
+		@onBeforeAdded="onBeforeAdded" 
+		@onBeforeDeleted="onBeforeDeleted" 
+		@onDeleted="onDeletedX" 
+		v-bind:files.sync="showFiles" 
+		v-bind:extraInfo="extraInfo"></gisq-upload>
+		<span  @click="testGetInfo">测试</span>
+		<img :src="testSrc"/>
+		<router-view></router-view>
+	</div>
 
 ```
 ###

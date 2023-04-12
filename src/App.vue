@@ -1,6 +1,12 @@
 <template>
 	<div id="app">
-		<gisq-upload @onChange="onChange" @onAdded="onAdded" @onBeforeAdded="onBeforeAdded" @onBeforeDeleted="onBeforeDeleted" @onDeleted="onDeletedX" v-bind:files.sync="showFiles" ></gisq-upload>
+		<gisq-upload @onChange="onChange" 
+		@onAdded="onAdded" 
+		@onBeforeAdded="onBeforeAdded" 
+		@onBeforeDeleted="onBeforeDeleted" 
+		@onDeleted="onDeletedX" 
+		v-bind:files.sync="showFiles" 
+		v-bind:extraInfo="extraInfo"></gisq-upload>
 		<span  @click="testGetInfo">测试</span>
 		<img :src="testSrc"/>
 		<router-view></router-view>
@@ -17,13 +23,18 @@
 		},
 		data() {
 			return {
+				test1:"aaa",
+				test2:"",
+				test3:{"name":"test3"},
+				test4:null,
 				testSrc:null,
 				files:[],
 				//showFiles:[],
 				 showFiles:[
 				"file://video/1.png",
 				"file://video/2.png",
-				] 
+				] ,
+				extraInfo:""
 			}
 		},
 		methods: {
@@ -73,6 +84,7 @@
 				 //this.$forceUpdate()
 			},
 			testGetInfo(){
+				this.extraInfo=this.getCurrentTime() ;
 				console.log(gisqUpload)
 				gisqUpload.getDeviceInfo(function(info){
 					console.log(JSON.stringify(info))
@@ -82,12 +94,40 @@
 				gisqUpload.readLocalFile(path,function(fileJs,jsBlob){
 					_this.testSrc=jsBlob;
 				});
+			},
+			getCurrentTime() {
+			    var date = new Date();//当前时间
+			    var year = date.getFullYear() //返回指定日期的年份
+			    var month = this.repair(date.getMonth() + 1);//月
+			    var day = this.repair(date.getDate());//日
+			    var hour = this.repair(date.getHours());//时
+			    var minute = this.repair(date.getMinutes());//分
+			    var second = this.repair(date.getSeconds());//秒
+			    
+			    //当前时间 
+			    var curTime = year + "-" + month + "-" + day
+			            + " " + hour + ":" + minute + ":" + second;
+			    return curTime;
+			},
+			 
+			//补0
+			 
+			repair(i){
+			    if (i >= 0 && i <= 9) {
+			        return "0" + i;
+			    } else {
+			        return i;
+			    }
 			}
 		},
 		mounted() {
 			
-
+			this.test4=this.test3;
+			this.test4.name="test444";
+			console.log(JSON.stringify(this.test3)+","+JSON.stringify(this.test4))
 		},
+		 
+		
 	}
 </script>
 

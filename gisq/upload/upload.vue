@@ -66,6 +66,10 @@
 			//duoImageViewer
 		},
 		props:{
+			extraInfo:{
+				type:String,
+				default:""
+			},
 			files:Array,
 			onBeforeDeleted:Function,
 			onBeforeAdded:Function,
@@ -312,6 +316,7 @@
 					var cameraActivity = plus.android.importClass(
 						"com.zjzs.gisq.jetpack.aar_camara.CamaraActivity"); //自己写的二维码扫描页面
 					var intent = new Intent(main, cameraActivity.class);
+					intent.putExtra("extraInfo",this.extraInfo);
 					//intent.setClassName(main, cameraActivity.class);
 					main.onActivityResult = function(requestCode, resultCode, data) {
 						if (100 == requestCode) {
